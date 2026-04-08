@@ -10,7 +10,7 @@ export class GetReservationsUseCase {
     private reservationRepository: IReservationRepository,
   ) {}
 
-  async execute(tenantId: string, userId?: string): Promise<Reservation[]> {
+  async execute(tenantId?: string, userId?: string): Promise<Reservation[]> {
     if (userId) {
       return this.reservationRepository.findByUser(userId, tenantId);
     }

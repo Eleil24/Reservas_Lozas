@@ -7,6 +7,7 @@ import {
   Req,
   Param,
   Delete,
+  BadRequestException,
 } from '@nestjs/common';
 import { CreateReservationUseCase } from '../../application/use-cases/reservations/create-reservation.use-case';
 import { GetReservationsUseCase } from '../../application/use-cases/reservations/get-reservations.use-case';
@@ -24,24 +25,53 @@ export class ReservationsController {
     private createReservationUseCase: CreateReservationUseCase,
     private getReservationsUseCase: GetReservationsUseCase,
     private cancelReservationUseCase: CancelReservationUseCase,
-  ) {}
+  ) { }
 
   @Post()
   async create(@Body() dto: CreateReservationDto, @Req() req) {
+    const userRole = req.user.role;
+    let finalTenantId = req.user.tenantId;
+    let finalUserId = req.user.userId;
+
+    // Logic for tenantId
+    if (userRole === Role.SUPER_ADMIN) {
+      if (!dto.tenantId) {
+        throw new BadRequestException('tenantId is required for Super Admin');
+      }
+      finalTenantId = dto.tenantId;
+    }
+
+    // Logic for userId
+    if (userRole === Role.SUPER_ADMIN || userRole === Role.ADMIN) {
+      if (dto.userId) {
+        finalUserId = dto.userId;
+      }
+    } else {
+      // Customers can only create reservations for themselves
+      finalUserId = req.user.userId;
+    }
+
     return this.createReservationUseCase.execute({
       fieldId: dto.fieldId,
       startTime: new Date(dto.startTime),
       endTime: new Date(dto.endTime),
-      tenantId: req.user.tenantId,
-      userId: req.user.userId,
+      tenantId: finalTenantId,
+      userId: finalUserId,
     });
   }
 
   @Get()
   async findAll(@Req() req) {
+    const userRole = req.user.role;
+
+    // Super Admin can see all reservations from all tenants
+    if (userRole === Role.SUPER_ADMIN) {
+      return this.getReservationsUseCase.execute(undefined, undefined);
+    }
+
     return this.getReservationsUseCase.execute(
       req.user.tenantId,
-      req.user.role === Role.ADMIN ? undefined : req.user.userId,
+      userRole === Role.ADMIN ? undefined : req.user.userId,
     );
   }
 

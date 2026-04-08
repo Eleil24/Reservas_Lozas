@@ -5,7 +5,7 @@ import { IFieldRepository } from '../../../domain/repositories/field.repository'
 
 @Injectable()
 export class FieldRepository implements IFieldRepository {
-  constructor(private db: DatabaseService) {}
+  constructor(private db: DatabaseService) { }
 
   async findById(id: string, tenantId: string): Promise<Field | null> {
     const result = await this.db.getOne<any>(
@@ -27,7 +27,13 @@ export class FieldRepository implements IFieldRepository {
     return this.mapToDomain(result);
   }
 
-  async findAll(tenantId: string): Promise<Field[]> {
+  async findAll(tenantId: string | null): Promise<Field[]> {
+    if (!tenantId) {
+      const results = await this.db.execute<any>(
+        `SELECT * FROM fields ORDER BY created_at DESC`,
+      );
+      return results.map(this.mapToDomain);
+    }
     const results = await this.db.execute<any>(
       `SELECT * FROM fields WHERE tenant_id = $1 ORDER BY created_at DESC`,
       [tenantId],

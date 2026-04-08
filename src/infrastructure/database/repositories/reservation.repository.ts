@@ -7,11 +7,16 @@ import { IReservationRepository } from '../../../domain/repositories/reservation
 export class ReservationRepository implements IReservationRepository {
   constructor(private db: DatabaseService) {}
 
-  async findById(id: string, tenantId: string): Promise<Reservation | null> {
-    const result = await this.db.getOne<any>(
-      `SELECT * FROM reservations WHERE id = $1 AND tenant_id = $2`,
-      [id, tenantId],
-    );
+  async findById(id: string, tenantId?: string): Promise<Reservation | null> {
+    let query = `SELECT * FROM reservations WHERE id = $1`;
+    const params: any[] = [id];
+
+    if (tenantId) {
+      query += ` AND tenant_id = $2`;
+      params.push(tenantId);
+    }
+
+    const result = await this.db.getOne<any>(query, params);
     return result ? this.mapToDomain(result) : null;
   }
 
@@ -34,27 +39,45 @@ export class ReservationRepository implements IReservationRepository {
     return this.mapToDomain(result);
   }
 
-  async findAll(tenantId: string): Promise<Reservation[]> {
-    const results = await this.db.execute<any>(
-      `SELECT * FROM reservations WHERE tenant_id = $1 ORDER BY start_time DESC`,
-      [tenantId],
-    );
+  async findAll(tenantId?: string): Promise<Reservation[]> {
+    let query = `SELECT * FROM reservations`;
+    const params: any[] = [];
+
+    if (tenantId) {
+      query += ` WHERE tenant_id = $1`;
+      params.push(tenantId);
+    }
+
+    query += ` ORDER BY start_time DESC`;
+    const results = await this.db.execute<any>(query, params);
     return results.map(this.mapToDomain);
   }
 
-  async findByUser(userId: string, tenantId: string): Promise<Reservation[]> {
-    const results = await this.db.execute<any>(
-      `SELECT * FROM reservations WHERE user_id = $1 AND tenant_id = $2 ORDER BY start_time DESC`,
-      [userId, tenantId],
-    );
+  async findByUser(userId: string, tenantId?: string): Promise<Reservation[]> {
+    let query = `SELECT * FROM reservations WHERE user_id = $1`;
+    const params: any[] = [userId];
+
+    if (tenantId) {
+      query += ` AND tenant_id = $2`;
+      params.push(tenantId);
+    }
+
+    query += ` ORDER BY start_time DESC`;
+    const results = await this.db.execute<any>(query, params);
     return results.map(this.mapToDomain);
   }
 
-  async findByField(fieldId: string, tenantId: string): Promise<Reservation[]> {
-    const results = await this.db.execute<any>(
-      `SELECT * FROM reservations WHERE field_id = $1 AND tenant_id = $2 ORDER BY start_time ASC`,
-      [fieldId, tenantId],
-    );
+  async findByField(fieldId: string, tenantId?: string): Promise<Reservation[]> {
+    let query = `SELECT * FROM reservations WHERE field_id = $1`;
+    const params: any[] = [fieldId];
+
+    if (tenantId) {
+      query += ` AND tenant_id = $2`;
+      params.push(tenantId);
+    }
+
+    query += ` ORDER BY start_time ASC`;
+    const results = await this.db.execute<any>(query, params);
     return results.map(this.mapToDomain);
   }
 
@@ -92,11 +115,16 @@ export class ReservationRepository implements IReservationRepository {
     return result ? this.mapToDomain(result) : null;
   }
 
-  async delete(id: string, tenantId: string): Promise<boolean> {
-    const result = await this.db.query(
-      `DELETE FROM reservations WHERE id = $1 AND tenant_id = $2`,
-      [id, tenantId],
-    );
+  async delete(id: string, tenantId?: string): Promise<boolean> {
+    let query = `DELETE FROM reservations WHERE id = $1`;
+    const params: any[] = [id];
+
+    if (tenantId) {
+      query += ` AND tenant_id = $2`;
+      params.push(tenantId);
+    }
+
+    const result = await this.db.query(query, params);
     return result.rowCount! > 0;
   }
 

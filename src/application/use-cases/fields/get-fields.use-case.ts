@@ -7,9 +7,9 @@ import { Field } from '../../../domain/entities/field.entity';
 export class GetFieldsUseCase {
   constructor(
     @Inject(FIELD_REPOSITORY) private fieldRepository: IFieldRepository,
-  ) {}
+  ) { }
 
-  async execute(tenantId: string): Promise<Field[]> {
+  async execute(tenantId: string | null): Promise<Field[]> {
     return this.fieldRepository.findAll(tenantId);
   }
 }

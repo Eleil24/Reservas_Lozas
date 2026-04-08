@@ -13,17 +13,20 @@ export class FieldsController {
   constructor(
     private createFieldUseCase: CreateFieldUseCase,
     private getFieldsUseCase: GetFieldsUseCase,
-  ) {}
+  ) { }
 
   @Post()
   @Roles(Role.ADMIN)
   async create(@Body() dto: CreateFieldDto, @Req() req) {
-    dto.tenantId = req.user.tenantId;
+    if (req.user.role !== Role.SUPER_ADMIN) {
+      dto.tenantId = req.user.tenantId;
+    }
     return this.createFieldUseCase.execute(dto);
   }
 
   @Get()
   async findAll(@Req() req) {
-    return this.getFieldsUseCase.execute(req.user.tenantId);
+    const tenantId = req.user.role == Role.SUPER_ADMIN ? null : req.user.tenantId;
+    return this.getFieldsUseCase.execute(tenantId);
   }
 }
