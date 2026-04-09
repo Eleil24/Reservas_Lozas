@@ -1,4 +1,5 @@
 import { Controller, Get, Post, Body, UseGuards, Req, ForbiddenException } from '@nestjs/common';
+import { ApiTags, ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { CreateUserUseCase } from '../../application/use-cases/users/create-user.use-case';
 import { GetUsersUseCase } from '../../application/use-cases/users/get-users.use-case';
 import { AuthGuard } from '../guards/auth.guard';
@@ -7,6 +8,8 @@ import { Roles } from '../../common/decorators/roles.decorator';
 import { Role } from '../../domain/value-objects/role';
 import { CreateUserDto } from '../dtos/users/user.dto';
 
+@ApiTags('users')
+@ApiBearerAuth()
 @Controller('users')
 @UseGuards(AuthGuard, RolesGuard)
 export class UsersController {
@@ -15,6 +18,9 @@ export class UsersController {
     private getUsersUseCase: GetUsersUseCase,
   ) {}
 
+  @ApiOperation({ summary: 'Create a new user (Admins, Super Admins)' })
+  @ApiResponse({ status: 201, description: 'User created successfully.' })
+  @ApiResponse({ status: 403, description: 'Forbidden (Cannot create users for other tenants unless Super Admin).' })
   @Post()
   @Roles(Role.ADMIN)
   async create(@Body() dto: CreateUserDto, @Req() req) {
@@ -33,6 +39,8 @@ export class UsersController {
     return this.createUserUseCase.execute(dto);
   }
 
+  @ApiOperation({ summary: 'Get list of users (Admins, Super Admins)' })
+  @ApiResponse({ status: 200, description: 'Returns a list of users.' })
   @Get()
   @Roles(Role.ADMIN)
   async findAll(@Req() req) {

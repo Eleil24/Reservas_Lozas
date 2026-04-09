@@ -9,6 +9,7 @@ import {
   Delete,
   BadRequestException,
 } from '@nestjs/common';
+import { ApiTags, ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { CreateReservationUseCase } from '../../application/use-cases/reservations/create-reservation.use-case';
 import { GetReservationsUseCase } from '../../application/use-cases/reservations/get-reservations.use-case';
 import { CancelReservationUseCase } from '../../application/use-cases/reservations/cancel-reservation.use-case';
@@ -18,6 +19,8 @@ import { Roles } from '../../common/decorators/roles.decorator';
 import { Role } from '../../domain/value-objects/role';
 import { CreateReservationDto } from '../dtos/reservations/reservation.dto';
 
+@ApiTags('reservations')
+@ApiBearerAuth()
 @Controller('reservations')
 @UseGuards(AuthGuard, RolesGuard)
 export class ReservationsController {
@@ -27,6 +30,9 @@ export class ReservationsController {
     private cancelReservationUseCase: CancelReservationUseCase,
   ) { }
 
+  @ApiOperation({ summary: 'Create a new reservation' })
+  @ApiResponse({ status: 201, description: 'Reservation created successfully.' })
+  @ApiResponse({ status: 400, description: 'Bad Request (e.g. invalid dates, missing tenantId for Super Admin).' })
   @Post()
   async create(@Body() dto: CreateReservationDto, @Req() req) {
     const userRole = req.user.role;
@@ -60,6 +66,8 @@ export class ReservationsController {
     });
   }
 
+  @ApiOperation({ summary: 'Get all reservations based on user role' })
+  @ApiResponse({ status: 200, description: 'Returns a list of reservations.' })
   @Get()
   async findAll(@Req() req) {
     const userRole = req.user.role;
@@ -75,6 +83,9 @@ export class ReservationsController {
     );
   }
 
+  @ApiOperation({ summary: 'Cancel a reservation' })
+  @ApiResponse({ status: 200, description: 'Reservation cancelled successfully.' })
+  @ApiResponse({ status: 404, description: 'Reservation not found.' })
   @Delete(':id')
   async cancel(@Param('id') id: string, @Req() req) {
     return this.cancelReservationUseCase.execute(

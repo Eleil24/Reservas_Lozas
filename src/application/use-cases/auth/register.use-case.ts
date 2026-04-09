@@ -11,7 +11,7 @@ export interface RegisterDto {
   name: string;
   email: string;
   password: string;
-  tenantName: string;
+  tenantId: string;
 }
 
 @Injectable()
@@ -23,13 +23,12 @@ export class RegisterUseCase {
   ) {}
 
   async execute(dto: RegisterDto): Promise<{ user: User; token: string }> {
-    // Check if tenant exists, if not create it
-    let tenant = await this.tenantRepository
-      .findAll()
-      .then((tenants) => tenants.find((t) => t.name === dto.tenantName));
+    // Check if tenant exists
+    const tenants = await this.tenantRepository.findAll();
+    const tenant = tenants.find((t) => t.id === dto.tenantId);
 
     if (!tenant) {
-      tenant = await this.tenantRepository.create({ name: dto.tenantName });
+      throw new BadRequestException('The selected sede (tenant) does not exist');
     }
 
     // Check if user exists in tenant
