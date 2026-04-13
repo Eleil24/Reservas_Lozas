@@ -1,4 +1,4 @@
-import { Controller, Post, Body } from '@nestjs/common';
+import { Controller, Post, Body, HttpCode } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { RegisterUseCase } from '../../application/use-cases/auth/register.use-case';
 import { LoginUseCase } from '../../application/use-cases/auth/login.use-case';
@@ -10,7 +10,7 @@ export class AuthController {
   constructor(
     private registerUseCase: RegisterUseCase,
     private loginUseCase: LoginUseCase,
-  ) {}
+  ) { }
 
   @ApiOperation({ summary: 'Register a new tenant and an admin user' })
   @ApiResponse({ status: 201, description: 'Tenant and User registered successfully.' })
@@ -24,6 +24,7 @@ export class AuthController {
   @ApiResponse({ status: 200, description: 'User authenticated, returns JWT token.' })
   @ApiResponse({ status: 401, description: 'Unauthorized (Invalid credentials).' })
   @Post('login')
+  @HttpCode(200)
   async login(@Body() dto: LoginDto) {
     return this.loginUseCase.execute(dto);
   }
