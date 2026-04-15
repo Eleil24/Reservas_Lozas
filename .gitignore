@@ -1,45 +1,34 @@
-# Compiled output
-/dist/
+# Dependencias y compilación
 /node_modules/
+/dist/
+/.serverless/
+/coverage/
 
 # Logs
-logs
 *.log
 npm-debug.log*
 yarn-debug.log*
-yarn-error.log*
-lerna-debug.log*
-.pnpm-debug.log*
 
-# OS-specific files
+# Seguridad y Variables de Entorno (¡IMPORTANTE!)
+.env
+.env.*
+!.env.example
+
+# Terraform - Archivos sensibles y estados
+infrastructure/.terraform/
+infrastructure/terraform.tfvars
+infrastructure/*.tfstate
+infrastructure/*.tfstate.backup
+infrastructure/.terraform.tfstate.lock.info
+
+# Archivos de sistema y editores
 .DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
 Thumbs.db
-
-# Environments
-# .env
-# .env.local
-# .env.development.local
-# .env.test.local
-# .env.production.local
-
-# IDEs
 .vscode/
 .idea/
 *.swp
-*.swo
-.project
-.classpath
-.settings/
 
-# Testing
-/coverage
-
-# Temporary files
-/tmp/
-*.tmp
+# Temporales de empaquetado
+*.zip
 *.bak
+*.tmp

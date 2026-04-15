@@ -21,15 +21,26 @@ export class RegisterDto {
 }
 
 export class LoginDto {
-  @ApiProperty({ description: 'The user email', example: 'john@example.com' })
+  @ApiProperty({
+    description: 'Email del usuario. Ejemplo para Super Admin: super@sistema.com',
+    example: 'super@sistema.com'
+  })
   @IsEmail()
   email: string;
 
-  @ApiProperty({ description: 'The user password', example: 'password123' })
+  @ApiProperty({
+    description: 'Contraseña del usuario. Ejemplo para Super Admin: superadmin123',
+    example: 'superadmin123'
+  })
   @IsString()
   password: string;
 
-  @ApiProperty({ description: 'Optional Tenant ID (Required if user belongs to multiple tenants)', required: false })
+  @ApiProperty({
+    description: 'ID de la sede (Tenant). OBLIGATORIO para Admin y Clientes. OMITIR para el Super Admin.',
+    required: false,
+    example: '',
+    nullable: true
+  })
   @IsString()
   @IsOptional()
   tenantId?: string;

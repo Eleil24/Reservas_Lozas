@@ -1,0 +1,78 @@
+service: football-reservations
+
+provider:
+  name: aws
+  runtime: nodejs20.x
+  region: us-east-2
+  stage: ${opt:stage, 'dev'}
+  # Permisos para que Lambda pueda leer los secretos del SSM
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - ssm:GetParameter
+            - ssm:GetParameters
+          Resource:
+            - arn:aws:ssm:us-east-2:*:parameter/football-reservations/${self:provider.stage}/*
+  environment:
+    STAGE: ${self:provider.stage}
+    PORT: 3000
+    # Variables desde SSM (creadas por Terraform)
+    DATABASE_URL: ${ssm:/football-reservations/${self:provider.stage}/database-url}
+    JWT_SECRET: ${ssm:/football-reservations/${self:provider.stage}/jwt-secret}
+
+functions:
+  api:
+    handler: dist/src/serverless.handler
+    events:
+      - http:
+          path: /
+          method: ANY
+          cors: true
+      - http:
+          path: /{proxy+}
+          method: ANY
+          cors: true
+
+package:
+  individually: false
+  patterns:
+    # ── Código fuente (Lambda usa dist/, no src/) ──
+    - '!src/**'
+    - '!test/**'
+    # ── Infraestructura / Docker (no van en Lambda) ──
+    - '!infrastructure/**'
+    - '!Dockerfile'
+    - '!.dockerignore'
+    - '!docker-compose.yml'
+    - '!entrypoint.sh'
+    # ── Variables de entorno locales ──
+    - '!.env'
+    - '!.env.*'
+    # ── Config de desarrollo (linters, formatters, build tools) ──
+    - '!.prettierrc'
+    - '!.gitignore'
+    - '!eslint.config.mjs'
+    - '!nest-cli.json'
+    - '!tsconfig.json'
+    - '!tsconfig.build.json'
+    - '!cucumber.js'
+    # ── Scripts de desarrollo ──
+    - '!check_db.ts'
+    - '!package-lock.json'
+    # ── Documentación ──
+    - '!README.md'
+    - '!*.md'
+    # ── Lo que SÍ debe ir a Lambda ──
+    - 'dist/**'
+    - 'node_modules/**'
+    - 'package.json'   # Necesario para dependencias en runtime
+
+plugins:
+  - serverless-offline
+
+custom:
+  serverless-offline:
+    httpPort: 4000 # Lo corremos en 4000 para que no choque con tu 3000 local
+    noPrependStageInUrl: true # Así la URL local será limpia

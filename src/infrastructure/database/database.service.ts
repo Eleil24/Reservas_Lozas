@@ -9,6 +9,9 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
     try {
       this.pool = new Pool({
         connectionString: process.env.DATABASE_URL,
+        ssl: {
+          rejectUnauthorized: false
+        }
       });
 
       await this.pool.query('SELECT NOW()');

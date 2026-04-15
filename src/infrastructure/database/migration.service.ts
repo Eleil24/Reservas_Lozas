@@ -22,13 +22,20 @@ export class MigrationService implements OnModuleInit {
       let migrationsPath = path.join(__dirname, 'migrations');
 
       if (!fs.existsSync(migrationsPath)) {
-        migrationsPath = path.join(
-          process.cwd(),
-          'src',
-          'infrastructure',
-          'database',
-          'migrations',
-        );
+        // En Lambda, NestJS pone los assets en dist/infrastructure/... al compilar
+        const prodPath = path.join(process.cwd(), 'dist', 'infrastructure', 'database', 'migrations');
+        if (fs.existsSync(prodPath)) {
+          migrationsPath = prodPath;
+        } else {
+          // Fallback para desarrollo local
+          migrationsPath = path.join(
+            process.cwd(),
+            'src',
+            'infrastructure',
+            'database',
+            'migrations',
+          );
+        }
       }
 
       // Get all .sql files sorted by name

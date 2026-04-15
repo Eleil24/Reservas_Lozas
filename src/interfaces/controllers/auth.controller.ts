@@ -20,7 +20,10 @@ export class AuthController {
     return this.registerUseCase.execute(dto);
   }
 
-  @ApiOperation({ summary: 'Login and get a JWT token' })
+  @ApiOperation({ 
+    summary: 'Login and get a JWT token',
+    description: 'Existen dos flujos: \n\n 1. **Super Admin**: Solo email y password (sin tenantId). \n 2. **Admin/Cliente**: Requiere email, password y el tenantId de su sede.'
+  })
   @ApiResponse({ status: 200, description: 'User authenticated, returns JWT token.' })
   @ApiResponse({ status: 401, description: 'Unauthorized (Invalid credentials).' })
   @Post('login')
