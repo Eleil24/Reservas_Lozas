@@ -1,4 +1,5 @@
 service: football-reservations
+useDotenv: true
 
 provider:
   name: aws
@@ -19,8 +20,8 @@ provider:
     STAGE: ${self:provider.stage}
     PORT: 3000
     # Variables desde SSM (creadas por Terraform)
-    DATABASE_URL: ${ssm:/football-reservations/${self:provider.stage}/database-url}
-    JWT_SECRET: ${ssm:/football-reservations/${self:provider.stage}/jwt-secret}
+    DATABASE_URL: ${ssm:/football-reservations/${self:provider.stage}/database-url, env:DATABASE_URL}
+    JWT_SECRET: ${ssm:/football-reservations/${self:provider.stage}/jwt-secret, env:JWT_SECRET}
 
 functions:
   api:

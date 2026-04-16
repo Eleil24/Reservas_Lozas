@@ -9,7 +9,7 @@ import {
   Delete,
   BadRequestException,
 } from '@nestjs/common';
-import { ApiTags, ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ApiTags, ApiBearerAuth, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
 import { CreateReservationUseCase } from '../../application/use-cases/reservations/create-reservation.use-case';
 import { GetReservationsUseCase } from '../../application/use-cases/reservations/get-reservations.use-case';
 import { CancelReservationUseCase } from '../../application/use-cases/reservations/cancel-reservation.use-case';
@@ -30,9 +30,51 @@ export class ReservationsController {
     private cancelReservationUseCase: CancelReservationUseCase,
   ) { }
 
-  @ApiOperation({ summary: 'Create a new reservation' })
-  @ApiResponse({ status: 201, description: 'Reservation created successfully.' })
-  @ApiResponse({ status: 400, description: 'Bad Request (e.g. invalid dates, missing tenantId for Super Admin).' })
+  @ApiOperation({ 
+    summary: 'Crear una nueva reserva',
+    description: `
+### Reglas para crear reservas:
+1. **Cliente (CUSTOMER)**: Reserva para sí mismo. No debe enviar 'userId' ni 'tenantId'.
+2. **Administrador de Sede (ADMIN)**: Puede reservar para otros usuarios de su misma sede enviando el 'userId'.
+3. **Super Administrador (SUPER_ADMIN)**: Debe especificar 'tenantId' y 'userId' para realizar la reserva.`
+  })
+  @ApiBody({
+    type: CreateReservationDto,
+    examples: {
+      cliente: {
+        summary: 'Caso 1: Cliente reserva para sí mismo',
+        description: 'Escenario estándar para un usuario final.',
+        value: {
+          fieldId: 'uuid-cancha-1',
+          startTime: '2024-05-20T10:00:00Z',
+          endTime: '2024-05-20T11:00:00Z'
+        }
+      },
+      admin: {
+        summary: 'Caso 2: Admin reserva para un cliente específico',
+        description: 'Se requiere el userId del cliente.',
+        value: {
+          fieldId: 'uuid-cancha-1',
+          startTime: '2024-05-20T15:00:00Z',
+          endTime: '2024-05-20T16:00:00Z',
+          userId: 'uuid-del-cliente'
+        }
+      },
+      superadmin: {
+        summary: 'Caso 3: Super Admin reserva en cualquier sede',
+        description: 'Requiere especificar tanto la sede (tenantId) como el cliente (userId).',
+        value: {
+          fieldId: 'uuid-cancha-1',
+          startTime: '2024-05-20T20:00:00Z',
+          endTime: '2024-05-20T21:00:00Z',
+          tenantId: 'uuid-de-la-sede',
+          userId: 'uuid-del-cliente'
+        }
+      }
+    }
+  })
+  @ApiResponse({ status: 201, description: 'Reserva creada con éxito.' })
+  @ApiResponse({ status: 400, description: 'Error en la petición (ej. fechas inválidas o falta tenantId para Super Admin).' })
   @Post()
   async create(@Body() dto: CreateReservationDto, @Req() req) {
     const userRole = req.user.role;
